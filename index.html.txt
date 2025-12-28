@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Zootopia 西葡冒險助手</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Handlee&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+
+    <style>
+        :root {
+            --zoo-blue: #60a5fa;
+            --zoo-green: #34d399;
+            --zoo-orange: #fb923c;
+        }
+        body { 
+            font-family: 'Handlee', 'Noto Sans TC', cursive;
+            background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .font-zootopia { font-family: 'Pacifico', cursive; }
+        .ios-blur { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        
+        /* 隱藏滾動條但保持功能 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+
+        /* 行程卡片動畫 */
+        .itinerary-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .itinerary-card:active { transform: scale(0.97); }
+        
+        /* 底部安全區域 (iOS) */
+        .pb-safe { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
+    </style>
+</head>
+<body class="text-slate-700">
+
+
+<div id="app" class="max-w-md mx-auto min-h-screen bg-white shadow-2xl relative overflow-x-hidden">
+    
+    <header class="sticky top-0 z-50 bg-gradient-to-r from-blue-400 via-teal-400 to-emerald-400 text-white p-5 pt-8 rounded-b-[40px] shadow-xl">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="font-zootopia text-3xl tracking-wider">Zootopia!</h1>
+                <p class="text-xs font-bold opacity-90 uppercase tracking-widest">Spain & Portugal 2025</p>
+            </div>
+            <div class="bg-white/20 p-2 rounded-2xl backdrop-blur-md text-center min-w-[80px]">
+                <p class="text-[10px] uppercase font-bold">1 EUR : HKD</p>
+                <input v-model.number="exchangeRate" type="number" step="0.1" 
+                       class="w-full bg-transparent border-none text-center text-white font-bold text-lg focus:ring-0">
+            </div>
+        </div>
+        
+        <div class="no-scrollbar flex space-x-3 overflow-x-auto pb-2">
+            <button v-for="(day, index) in tripDays" :key="index"
+                    @click="selectedDay = day"
+                    :class="selectedDay === day ? 'bg-white text-blue-500 scale-110 shadow-lg' : 'bg-white/30 text-white'"
+                    class="flex-shrink-0 px-6 py-2 rounded-2xl font-bold text-sm transition-all duration-300">
+                Day {{ index + 1 }}
+            </button>
+        </div>
+    </header>
+
+
+    <main class="p-5 pb-safe">
+        
+        <div v-if="activeTab === 'itinerary'" class="space-y-6">
+            <div class="w-full h-52 bg-slate-100 rounded-[30px] overflow-hidden shadow-inner border-4 border-white shadow-lg relative">
+                <iframe 
+                    v-if="focusedLocation"
+                    :src="'https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_KEY_OPTIONAL&q=' + encodeURIComponent(focusedLocation)"
+                    class="w-full h-full border-0 grayscale-[0.2]">
+                </iframe>
+                <div v-else class="flex flex-col items-center justify-center h-full text-slate-400 italic">
+                    <i class="fas fa-paw text-4xl mb-2 opacity-20"></i>
+                    <p>點擊下方卡片開始導航</p>
+                </div>
+            </div>
+
+
+            <div class="space-y-4">
+                <div v-for="(item, index) in filteredItinerary" :key="index" 
+                    @click="focusedLocation = item.location"
+                    class="itinerary-card p-5 rounded-[25px] bg-white border border-slate-50 shadow-[0_10px_20px_rgba(0,0,0,0.05)] relative overflow-hidden"
+                    :class="{'ring-2 ring-
